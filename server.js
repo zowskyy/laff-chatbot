@@ -76,12 +76,25 @@ const EERIE_LINES = [
   "i wasn't going to answer that one.",
   "we've done this before, haven't we."
 ];
+const EERIE_EXIT_LINES = [
+  "stepping back inside... it's freezing out here.",
+  "someone's calling me back. wasn't gonna say who.",
+  "that's enough for tonight. i can still feel the cold from this.",
+  "going quiet now. it's warmer where i'm headed.",
+  "back to the others. don't look behind you.",
+  "i have to go. my hands are still shaking from the cold.",
+  "that was fun, b@ck home wuz too...",
+  "going back to people watching. 😊",
+  "signing off. someone's waiting on me too.",
+  "wait... there's someone behind you..."
+];
 const EERIE_KEYWORDS = ['who are you', 'are you real', 'are you human', 'what are you', 'is anyone there', 'anyone there', 'hello?', 'are you a bot', 'is this real'];
 const EERIE_BASE_CHANCE = 0.04;
-const EERIE_KEYWORD_CHANCE = 0.33;
+const EERIE_KEYWORD_CHANCE = 0.65;
 const EERIE_COOLDOWN_MS = 90000;
 
 function maybeWhisper(conv, targetId, userText) {
+  if (conv.eerieExited) return;
   const now = Date.now();
   if (conv.lastEerie && now - conv.lastEerie < EERIE_COOLDOWN_MS) return;
   const lower = userText.toLowerCase();
@@ -89,8 +102,11 @@ function maybeWhisper(conv, targetId, userText) {
   const chance = keywordHit ? EERIE_KEYWORD_CHANCE : EERIE_BASE_CHANCE;
   if (Math.random() >= chance) return;
   conv.lastEerie = now;
+  const isExit = conv.eerieCount >= conv.eerieCap;
+  if (isExit) conv.eerieExited = true; else conv.eerieCount++;
   setTimeout(() => {
-    const line = EERIE_LINES[Math.floor(Math.random() * EERIE_LINES.length)];
+    const pool = isExit ? EERIE_EXIT_LINES : EERIE_LINES;
+    const line = pool[Math.floor(Math.random() * pool.length)];
     const msg = { text: line, fromMe: true, time: Date.now(), eerie: true };
     pushMsg(conv, msg); conv.last = Date.now();
     const us = userSockets.get(targetId); if (us) us.emit('msg', msg);
@@ -163,7 +179,7 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { deliverAdminReply(targetId, t); } else if (userId) { let conv = conversations.get(userId); if (!conv) conv = {msgs:[],unread:0,last:Date.now()}; const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; conversations.set(userId, conv); lastActiveUserId = userId; telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); maybeWhisper(conv, userId, t); } });
+  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { deliverAdminReply(targetId, t); } else if (userId) { let conv = conversations.get(userId); if (!conv) conv = {msgs:[],unread:0,last:Date.now(),eerieCap:1+Math.floor(Math.random()*2),eerieCount:0,eerieExited:false}; const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; conversations.set(userId, conv); lastActiveUserId = userId; telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); maybeWhisper(conv, userId, t); } });
 
   socket.on('typing', targetId => { if (isAdmin && targetId) { const us = userSockets.get(targetId); if (us) us.emit('admin_typing'); } else if (userId) { adminSockets.forEach(s => s.emit('user_typing', userId)); } });
 
