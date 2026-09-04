@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="anatta admin">
+<title>anatta admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#0a0a0a;color:#e0d8d4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;overflow:hidden;touch-action:manipulation}
+
+/* ——— screens ——— */
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;background:#0a0a0a;transition:transform 0.28s cubic-bezier(0.4,0,0.2,1),opacity 0.28s}
+.screen.hidden{transform:translateX(100%);opacity:0;pointer-events:none}
+.screen.slide-left{transform:translateX(-100%);opacity:0;pointer-events:none}
+
+/* ——— lock screen ——— */
+#lock-screen{align-items:center;justify-content:center;gap:20px}
+.lock-title{font-size:13px;letter-spacing:0.2em;text-transform:uppercase;color:#4a4240}
+.lock-name{font-size:22px;letter-spacing:-0.01em;color:#e0d8d4;margin-bottom:8px}
+.lock-name .r{color:#c0392b}
+.lock-input{background:#161210;border:1px solid #2a2420;color:#e0d8d4;padding:14px 20px;border-radius:12px;font-size:17px;text-align:center;width:240px;outline:none;letter-spacing:0.1em}
+.lock-input::placeholder{color:#3a3230;letter-spacing:0}
+.lock-btn{background:#c0392b;color:#fff;border:none;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;width:240px;transition:background 0.15s}
+.lock-btn:active{background:#9b2d21}
+.lock-err{font-size:12px;color:#c0392b;min-height:16px;text-align:center}
+
+/* ——— top bar ——— */
+.topbar{flex-shrink:0;height:56px;display:flex;align-items:center;padding:0 16px;border-bottom:1px solid #1a1614;gap:12px;background:#0a0a0a}
+.topbar-back{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:none;background:none;color:#c0392b;font-size:20px;cursor:pointer;padding:0;border-radius:8px}
+.topbar-back:active{background:#1a0a0a}
+.topbar-title{flex:1;font-size:16px;font-weight:600;color:#e0d8d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.topbar-sub{font-size:11px;color:#5a5250;font-weight:400}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#2a2420;flex-shrink:0;transition:background 0.3s}
+.status-dot.on{background:#4caf50}
+
+/* ——— list screen ——— */
+#list-screen{}
+
+.search-wrap{padding:10px 12px;border-bottom:1px solid #141210;flex-shrink:0}
+.search-input{width:100%;background:#161210;border:1px solid #1e1a18;color:#e0d8d4;padding:9px 14px;border-radius:10px;font-size:14px;outline:none}
+.search-input::placeholder{color:#3a3230}
+
+.convo-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.empty-list{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:8px;color:#3a3230;font-size:14px}
+.empty-list .em{font-size:32px}
+
+.convo-row{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #111;gap:12px;cursor:pointer;transition:background 0.1s;-webkit-tap-highlight-color:transparent}
+.convo-row:active{background:#111}
+.avatar{width:44px;height:44px;border-radius:50%;background:#1a1614;border:1px solid #2a2420;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;color:#5a4a44;font-weight:500;position:relative}
+.avatar .unread-dot{position:absolute;top:0;right:0;width:10px;height:10px;border-radius:50%;background:#c0392b;border:2px solid #0a0a0a}
+.convo-meta{flex:1;min-width:0}
+.convo-name{font-size:15px;font-weight:600;color:#e0d8d4;display:flex;align-items:center;gap:8px;justify-content:space-between}
+.convo-name .time{font-size:11px;color:#4a4240;font-weight:400}
+.convo-preview{font-size:13px;color:#6a6260;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.unread-badge{background:#c0392b;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;flex-shrink:0}
+.convo-preview .preview-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.convo-preview .msg-count{font-size:11px;color:#3a3230;flex-shrink:0}
+
+/* ——— thread screen ——— */
+#thread-screen{}
+
+.messages{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:12px 12px 8px;display:flex;flex-direction:column;gap:8px}
+
+.bubble{max-width:78%;padding:10px 14px;border-radius:18px;font-size:15px;line-height:1.4;word-break:break-word;position:relative}
+.bubble.from-user{align-self:flex-start;background:#1e1a18;color:#e0d8d4;border-bottom-left-radius:4px}
+.bubble.from-me{align-self:flex-end;background:#c0392b;color:#fff;border-bottom-right-radius:4px}
+.bubble .btime{font-size:10px;opacity:0.55;margin-top:4px;text-align:right}
+.bubble.from-user .btime{text-align:left}
+
+.typing-indicator{align-self:flex-start;background:#1e1a18;padding:10px 14px;border-radius:18px;border-bottom-left-radius:4px;display:none;gap:4px;align-items:center}
+.typing-indicator.visible{display:flex}
+.typing-dot{width:7px;height:7px;border-radius:50%;background:#5a5250;animation:tdot 1.2s ease-in-out infinite}
+.typing-dot:nth-child(2){animation-delay:0.2s}
+.typing-dot:nth-child(3){animation-delay:0.4s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-5px)}}
+
+.reply-wrap{flex-shrink:0;display:flex;align-items:flex-end;gap:8px;padding:10px 12px 16px;border-top:1px solid #141210;background:#0a0a0a}
+.reply-input{flex:1;background:#161210;border:1px solid #1e1a18;color:#e0d8d4;padding:11px 14px;border-radius:22px;font-size:15px;outline:none;resize:none;max-height:120px;line-height:1.4;overflow-y:auto}
+.reply-input::placeholder{color:#3a3230}
+.send-btn{width:40px;height:40px;border-radius:50%;background:#c0392b;border:none;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s;padding:0}
+.send-btn:active{background:#9b2d21}
+.send-btn:disabled{background:#2a1a18;color:#4a3230}
+
+.thread-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:6px;color:#3a3230;font-size:13px}
+
+/* ——— toast ——— */
+.toast{position:fixed;bottom:84px;left:50%;transform:translateX(-50%) translateY(20px);background:#1e1a18;color:#e0d8d4;padding:9px 18px;border-radius:20px;font-size:13px;opacity:0;transition:all 0.25s;z-index:999;border:1px solid #2a2420;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* safe area */
+.reply-wrap{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+</style>
+</head>
+<body>
+
+<!-- lock screen -->
+<div class="screen" id="lock-screen">
+  <div class="lock-title">anatta.machina</div>
+  <div class="lock-name"><span class="r">a</span>dm<span class="r">i</span>n</div>
+  <input class="lock-input" id="lock-input" type="password" placeholder="passcode" autocomplete="current-password">
+  <div class="lock-err" id="lock-err"></div>
+  <button class="lock-btn" id="lock-btn">enter</button>
+</div>
+
+<!-- list screen -->
+<div class="screen hidden" id="list-screen">
+  <div class="topbar">
+    <div class="topbar-title">conversations<br><span class="topbar-sub" id="conn-label">connecting…</span></div>
+    <div class="status-dot" id="status-dot"></div>
+  </div>
+  <div class="search-wrap">
+    <input class="search-input" id="search-input" placeholder="search by name or message…" autocomplete="off">
+  </div>
+  <div class="convo-list" id="convo-list">
+    <div class="empty-list" id="empty-list"><span class="em">◦</span>no conversations yet</div>
+  </div>
+</div>
+
+<!-- thread screen -->
+<div class="screen hidden" id="thread-screen">
+  <div class="topbar">
+    <button class="topbar-back" id="back-btn">‹</button>
+    <div class="topbar-title" id="thread-title">—<br><span class="topbar-sub" id="thread-sub"></span></div>
+    <div class="status-dot" id="thread-dot"></div>
+  </div>
+  <div class="messages" id="messages">
+    <div class="thread-empty" id="thread-empty"><span>◦</span>no messages</div>
+  </div>
+  <div class="typing-indicator" id="typing-indicator">
+    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+  </div>
+  <div class="reply-wrap">
+    <textarea class="reply-input" id="reply-input" placeholder="reply…" rows="1"></textarea>
+    <button class="send-btn" id="send-btn" disabled>↑</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+
+  // screens
+  const lockScreen   = $('lock-screen');
+  const listScreen   = $('list-screen');
+  const threadScreen = $('thread-screen');
+
+  // lock
+  const lockInput = $('lock-input');
+  const lockBtn   = $('lock-btn');
+  const lockErr   = $('lock-err');
+
+  // list
+  const connLabel  = $('conn-label');
+  const statusDot  = $('status-dot');
+  const searchInput = $('search-input');
+  const convoListEl = $('convo-list');
+  const emptyList   = $('empty-list');
+
+  // thread
+  const backBtn        = $('back-btn');
+  const threadTitle    = $('thread-title');
+  const threadSub      = $('thread-sub');
+  const threadDot      = $('thread-dot');
+  const messagesEl     = $('messages');
+  const typingEl       = $('typing-indicator');
+  const replyInput     = $('reply-input');
+  const sendBtn        = $('send-btn');
+  const threadEmptyEl  = $('thread-empty');
+
+  const toastEl = $('toast');
+
+  // state
+  const convos = new Map(); // id -> {name, last, unread, preview, msgs:[]}
+  let currentId = null;
+  let searchQuery = '';
+  let typingTimer = null;
+  let isConnected = false;
+
+  // ——— socket ———
+  const socket = io();
+
+  socket.on('connect', () => {
+    isConnected = true;
+    statusDot.classList.add('on');
+    threadDot.classList.add('on');
+    connLabel.textContent = 'connected';
+  });
+
+  socket.on('disconnect', () => {
+    isConnected = false;
+    statusDot.classList.remove('on');
+    threadDot.classList.remove('on');
+    connLabel.textContent = 'disconnected';
+  });
+
+  socket.on('admin_ok', () => {
+    showList();
+  });
+
+  socket.on('admin_fail', () => {
+    lockErr.textContent = 'wrong passcode';
+    lockInput.value = '';
+    lockInput.focus();
+  });
+
+  socket.on('convo_list', list => {
+    list.forEach(c => {
+      const existing = convos.get(c.id) || {};
+      convos.set(c.id, { name: c.name || c.id.slice(0,8), last: c.last, unread: c.unread, preview: c.preview, msgs: existing.msgs || [] });
+    });
+    renderList();
+  });
+
+  socket.on('new_convo', c => {
+    const existing = convos.get(c.id) || {};
+    convos.set(c.id, { name: c.name || c.id.slice(0,8), last: c.last, unread: c.unread, preview: c.preview, msgs: existing.msgs || [] });
+    renderList();
+    if (c.unread > 0 && c.id !== currentId) showToast(`new message from ${c.name || c.id.slice(0,8)}`);
+  });
+
+  socket.on('msg_update', (targetId, msg) => {
+    const conv = convos.get(targetId);
+    if (!conv) return;
+    conv.msgs.push(msg);
+    conv.last = msg.time;
+    conv.preview = msg.text;
+    if (targetId !== currentId) { conv.unread++; }
+    renderList();
+    if (targetId === currentId) { renderThread(); scrollBottom(); }
+  });
+
+  socket.on('admin_history', (targetId, msgs) => {
+    const conv = convos.get(targetId);
+    if (!conv) return;
+    conv.msgs = msgs;
+    if (targetId === currentId) { renderThread(); scrollBottom(); }
+  });
+
+  socket.on('user_typing', id => {
+    if (id !== currentId) return;
+    typingEl.classList.add('visible');
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => typingEl.classList.remove('visible'), 2500);
+  });
+
+  // ——— lock screen ———
+  function tryLogin() {
+    const pass = lockInput.value.trim();
+    if (!pass) return;
+    lockErr.textContent = '';
+    socket.emit('admin_auth', pass);
+  }
+  lockBtn.addEventListener('click', tryLogin);
+  lockInput.addEventListener('keypress', e => { if (e.key === 'Enter') tryLogin(); });
+
+  // ——— show screens ———
+  function showList() {
+    lockScreen.classList.add('slide-left');
+    listScreen.classList.remove('hidden');
+    listScreen.classList.remove('slide-left');
+    threadScreen.classList.add('hidden');
+    currentId = null;
+    renderList();
+  }
+
+  function showThread(id) {
+    currentId = id;
+    const conv = convos.get(id);
+    if (!conv) return;
+    conv.unread = 0;
+    socket.emit('read_convo', id);
+    socket.emit('get_history', id);
+
+    const nameEl = threadTitle.firstChild;
+    if (nameEl) nameEl.textContent = conv.name;
+    else threadTitle.firstChild.nodeValue = conv.name;
+    threadTitle.innerHTML = conv.name + '<br><span class="topbar-sub" id="thread-sub">' + id.slice(0,8) + '</span>';
+
+    listScreen.classList.add('slide-left');
+    threadScreen.classList.remove('hidden');
+    renderList();
+    renderThread();
+    scrollBottom();
+    replyInput.focus();
+  }
+
+  backBtn.addEventListener('click', () => {
+    currentId = null;
+    threadScreen.classList.add('hidden');
+    listScreen.classList.remove('slide-left');
+    renderList();
+  });
+
+  // ——— list rendering ———
+  function fmtTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts), now = new Date();
+    if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    return d.toLocaleDateString([], {month:'short',day:'numeric'});
+  }
+
+  function initials(name) {
+    const parts = name.split('-');
+    return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
+  }
+
+  function renderList() {
+    let ids = Array.from(convos.keys()).sort((a,b) => (convos.get(b).last||0) - (convos.get(a).last||0));
+    const q = searchQuery.toLowerCase();
+    if (q) ids = ids.filter(id => {
+      const c = convos.get(id);
+      return c.name.toLowerCase().includes(q) || (c.preview||'').toLowerCase().includes(q) || id.includes(q);
+    });
+
+    if (ids.length === 0) { emptyList.style.display = 'flex'; return; }
+    emptyList.style.display = 'none';
+
+    // diff-update: rebuild only
+    convoListEl.querySelectorAll('.convo-row').forEach(el => el.remove());
+
+    ids.forEach(id => {
+      const c = convos.get(id);
+      const row = document.createElement('div');
+      row.className = 'convo-row';
+      row.dataset.id = id;
+      const hasUnread = c.unread > 0 && id !== currentId;
+      row.innerHTML = `
+        <div class="avatar">${initials(c.name)}${hasUnread ? '<span class="unread-dot"></span>' : ''}</div>
+        <div class="convo-meta">
+          <div class="convo-name">
+            <span>${escHtml(c.name)}</span>
+            <span class="time">${fmtTime(c.last)}</span>
+          </div>
+          <div class="convo-preview">
+            <span class="preview-text">${escHtml(c.preview||'')}</span>
+            ${hasUnread ? `<span class="unread-badge">${c.unread}</span>` : `<span class="msg-count">${c.msgs.length ? c.msgs.length + ' msg' : ''}</span>`}
+          </div>
+        </div>`;
+      row.addEventListener('click', () => showThread(id));
+      convoListEl.insertBefore(row, emptyList);
+    });
+  }
+
+  // ——— thread rendering ———
+  function renderThread() {
+    const conv = currentId ? convos.get(currentId) : null;
+    messagesEl.querySelectorAll('.bubble').forEach(el => el.remove());
+
+    if (!conv || conv.msgs.length === 0) {
+      threadEmptyEl.style.display = 'flex';
+      return;
+    }
+    threadEmptyEl.style.display = 'none';
+
+    conv.msgs.forEach(m => {
+      const div = document.createElement('div');
+      div.className = 'bubble ' + (m.fromMe ? 'from-me' : 'from-user');
+      div.innerHTML = escHtml(m.text) + `<div class="btime">${fmtTime(m.time)}</div>`;
+      messagesEl.insertBefore(div, typingEl);
+    });
+  }
+
+  function scrollBottom() {
+    requestAnimationFrame(() => { messagesEl.scrollTop = messagesEl.scrollHeight; });
+  }
+
+  // ——— reply ———
+  replyInput.addEventListener('input', () => {
+    sendBtn.disabled = !replyInput.value.trim();
+    // auto-resize
+    replyInput.style.height = 'auto';
+    replyInput.style.height = Math.min(replyInput.scrollHeight, 120) + 'px';
+    if (currentId) socket.emit('typing', currentId);
+  });
+
+  replyInput.addEventListener('keypress', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); }
+  });
+
+  sendBtn.addEventListener('click', doSend);
+
+  function doSend() {
+    const text = replyInput.value.trim();
+    if (!text || !currentId) return;
+    socket.emit('msg', text, currentId);
+    replyInput.value = '';
+    replyInput.style.height = 'auto';
+    sendBtn.disabled = true;
+  }
+
+  // ——— search ———
+  searchInput.addEventListener('input', () => {
+    searchQuery = searchInput.value;
+    renderList();
+  });
+
+  // ——— utils ———
+  function escHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+  let toastTimer;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2500);
+  }
+})();
+</script>
+</body>
+</html>

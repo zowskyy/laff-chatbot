@@ -5,9 +5,20 @@ if (!ALLOWED_ORIGIN) { console.warn('WARNING: ALLOWED_ORIGIN env var is not set 
 
 const conversations = new Map();const adminSockets = new Set();const userSockets = new Map();
 const loginAttempts = new Map(); // ip -> {count, lockUntil}
-const MAX_ATTEMPTS = 5, LOCK_MS = 60000, ATTEMPT_WINDOW_MS = 60000, MAX_HISTORY = 5;
+const MAX_ATTEMPTS = 5, LOCK_MS = 60000, ATTEMPT_WINDOW_MS = 60000, MAX_HISTORY = 5, MAX_ADMIN_HISTORY = 500;
 
-function pushMsg(conv, msg) { conv.msgs.push(msg); if (conv.msgs.length > MAX_HISTORY) conv.msgs = conv.msgs.slice(-MAX_HISTORY); }
+const ADJECTIVES = ['pale','dim','still','cold','hollow','ashen','silent','faint','grey','quiet','bare','dark','worn','soft','lost','slow','thin','dull','void','rust'];
+const NOUNS = ['moth','crane','ember','drift','smoke','wisp','stone','frost','shade','mist','wraith','husk','dusk','veil','shard','echo','gloom','ash','tide','rift'];
+function genName() {
+  const a = ADJECTIVES[Math.floor(Math.random()*ADJECTIVES.length)];
+  const n = NOUNS[Math.floor(Math.random()*NOUNS.length)];
+  return `${a}-${n}`;
+}
+
+function pushMsg(conv, msg) {
+  conv.msgs.push(msg); if (conv.msgs.length > MAX_HISTORY) conv.msgs = conv.msgs.slice(-MAX_HISTORY);
+  conv.adminMsgs.push(msg); if (conv.adminMsgs.length > MAX_ADMIN_HISTORY) conv.adminMsgs = conv.adminMsgs.slice(-MAX_ADMIN_HISTORY);
+}
 
 function genId() { return crypto.randomBytes(8).toString('hex'); }
 
@@ -70,7 +81,7 @@ function deliverAdminReply(targetId, text) {
   const conv = conversations.get(targetId);
   if (!conv) return false;
   const msg = { text: text.trim().slice(0, 2000), fromMe: true, time: Date.now() };
-  pushMsg(conv, msg); conv.last = Date.now();
+  pushMsg(conv, msg); conv.last = Date.now(); conv.unread = 0;
   const us = userSockets.get(targetId); if (us) us.emit('msg', msg);
   adminSockets.forEach(s => s.emit('msg_update', targetId, msg));
   return true;
@@ -116,14 +127,16 @@ io.on('connection', socket => {
   let userId = null; let isAdmin = false;
   const ip = socket.handshake.address;
 
-  socket.on('join', () => { userId = genId(); userSockets.set(userId, socket); socket.emit('assigned', userId); });
+  socket.on('join', () => { userId = genId(); userSockets.set(userId, socket); socket.emit('assigned', userId);
+    if (!conversations.has(userId)) conversations.set(userId, {msgs:[],adminMsgs:[],unread:0,last:Date.now(),name:genName()});
+  });
 
   socket.on('admin_auth', pass => {
     if (!checkRateLimit(ip)) { socket.emit('admin_fail'); return; }
     if (typeof pass === 'string' && safeCompare(pass, PASSCODE)) {
       clearAttempts(ip);
       isAdmin = true; adminSockets.add(socket); socket.emit('admin_ok');
-      const list = Array.from(conversations.entries()).map(([id,c]) => ({id,last:c.last,unread:c.unread,preview:c.msgs[c.msgs.length-1]?.text||''})).sort((a,b)=>b.last-a.last);
+      const list = Array.from(conversations.entries()).map(([id,c]) => ({id,name:c.name,last:c.last,unread:c.unread,preview:c.adminMsgs[c.adminMsgs.length-1]?.text||''})).sort((a,b)=>b.last-a.last);
       socket.emit('convo_list', list);
     } else {
       recordFailedAttempt(ip);
@@ -131,7 +144,11 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { deliverAdminReply(targetId, t); } else if (userId) { let conv = conversations.get(userId); if (!conv) conv = {msgs:[],unread:0,last:Date.now()}; const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; conversations.set(userId, conv); lastActiveUserId = userId; telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); } });
+  socket.on('read_convo', targetId => { if (!isAdmin) return; const conv = conversations.get(targetId); if (conv) conv.unread = 0; });
+
+  socket.on('get_history', targetId => { if (!isAdmin) return; const conv = conversations.get(targetId); if (conv) socket.emit('admin_history', targetId, conv.adminMsgs); });
+
+  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { deliverAdminReply(targetId, t); } else if (userId) { let conv = conversations.get(userId); if (!conv) { conv = {msgs:[],adminMsgs:[],unread:0,last:Date.now(),name:genName()}; conversations.set(userId, conv); } const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; lastActiveUserId = userId; telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,name:conv.name,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); } });
 
   socket.on('typing', targetId => { if (isAdmin && targetId) { const us = userSockets.get(targetId); if (us) us.emit('admin_typing'); } else if (userId) { adminSockets.forEach(s => s.emit('user_typing', userId)); } });
 
