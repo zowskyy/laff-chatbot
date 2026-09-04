@@ -36,12 +36,69 @@ function recordFailedAttempt(ip) {
 
 function clearAttempts(ip) { loginAttempts.delete(ip); }
 
-async function telegramAlert(text, userId) { if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return; try { const msg = `laff alert: someone is talking to you. message: ${text.slice(0,200)}${text.length>200?'...':''}`; await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, disable_notification: false }) }); } catch(e) { console.log('telegram alert failed:', e.message); } }
+const telegramMsgMap = new Map(); // telegram alert message_id -> userId
+let lastActiveUserId = null;
+let webhookSecret = null;
+
+async function telegramAlert(text, userId) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  try {
+    const msg = `laff alert: someone is talking to you.\nmessage: "${text.slice(0,200)}${text.length>200?'...':''}"\n\n↩ reply to this message to respond to them`;
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: msg, disable_notification: false }) });
+    const data = await res.json();
+    if (data.ok && data.result && data.result.message_id) telegramMsgMap.set(data.result.message_id, userId);
+  } catch(e) { console.log('telegram alert failed:', e.message); }
+}
+
+async function telegramConfirm(text) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  try { await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text, disable_notification: true }) }); } catch(e) {}
+}
+
+async function setupTelegramWebhook() {
+  if (!TELEGRAM_BOT_TOKEN || !ALLOWED_ORIGIN) { if (TELEGRAM_BOT_TOKEN) console.warn('WARNING: TELEGRAM_BOT_TOKEN is set but ALLOWED_ORIGIN is not — cannot register Telegram webhook, replying from Telegram will not work.'); return; }
+  webhookSecret = crypto.randomBytes(24).toString('hex');
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ url: `${ALLOWED_ORIGIN}/telegram-webhook`, secret_token: webhookSecret, allowed_updates: ['message'] }) });
+    const data = await res.json();
+    if (data.ok) console.log('Telegram webhook registered — replying from Telegram is now live.');
+    else { console.error('Telegram webhook registration failed:', data.description); webhookSecret = null; }
+  } catch(e) { console.error('Telegram webhook setup error:', e.message); webhookSecret = null; }
+}
+
+function deliverAdminReply(targetId, text) {
+  const conv = conversations.get(targetId);
+  if (!conv) return false;
+  const msg = { text: text.trim().slice(0, 2000), fromMe: true, time: Date.now() };
+  pushMsg(conv, msg); conv.last = Date.now();
+  const us = userSockets.get(targetId); if (us) us.emit('msg', msg);
+  adminSockets.forEach(s => s.emit('msg_update', targetId, msg));
+  return true;
+}
+
+function handleTelegramUpdate(update) {
+  const message = update && update.message;
+  if (!message || !message.text) return;
+  if (String(message.chat.id) !== String(TELEGRAM_CHAT_ID)) return;
+  let targetId = null;
+  if (message.reply_to_message && telegramMsgMap.has(message.reply_to_message.message_id)) targetId = telegramMsgMap.get(message.reply_to_message.message_id);
+  else targetId = lastActiveUserId;
+  if (!targetId) { telegramConfirm('no active conversation to reply to yet.'); return; }
+  const delivered = deliverAdminReply(targetId, message.text);
+  telegramConfirm(delivered ? `✓ sent to ${targetId.slice(0,8)}` : 'that conversation no longer exists.');
+}
 
 const MIME = {'.html':'text/html','.js':'application/javascript','.css':'text/css','.mp4':'video/mp4','.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.svg':'image/svg+xml','.json':'application/json','.webmanifest':'application/manifest+json','.ico':'image/x-icon'};
 
 const server = http.createServer((req, res) => {
   let urlPath = decodeURIComponent(req.url.split('?')[0]);
+  if (req.method === 'POST' && urlPath === '/telegram-webhook') {
+    if (!webhookSecret || req.headers['x-telegram-bot-api-secret-token'] !== webhookSecret) { res.writeHead(403); res.end(); return; }
+    let body = '';
+    req.on('data', chunk => { body += chunk; if (body.length > 1e6) req.destroy(); });
+    req.on('end', () => { try { handleTelegramUpdate(JSON.parse(body)); } catch(e) {} res.writeHead(200); res.end('ok'); });
+    return;
+  }
   if (urlPath === '/') urlPath = '/index.html';
   const filePath = path.join(__dirname, urlPath);
   if (!filePath.startsWith(__dirname + path.sep) && filePath !== path.join(__dirname, 'index.html')) { res.writeHead(403); res.end(); return; }
@@ -74,11 +131,11 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { const conv = conversations.get(targetId); if (conv) { const msg = {text:t,fromMe:true,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); const us = userSockets.get(targetId); if (us) us.emit('msg', msg); adminSockets.forEach(s => s.emit('msg_update', targetId, msg)); } } else if (userId) { let conv = conversations.get(userId); if (!conv) conv = {msgs:[],unread:0,last:Date.now()}; const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; conversations.set(userId, conv); telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); } });
+  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { deliverAdminReply(targetId, t); } else if (userId) { let conv = conversations.get(userId); if (!conv) conv = {msgs:[],unread:0,last:Date.now()}; const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; conversations.set(userId, conv); lastActiveUserId = userId; telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); } });
 
   socket.on('typing', targetId => { if (isAdmin && targetId) { const us = userSockets.get(targetId); if (us) us.emit('admin_typing'); } else if (userId) { adminSockets.forEach(s => s.emit('user_typing', userId)); } });
 
   socket.on('disconnect', () => { if (isAdmin) adminSockets.delete(socket); if (userId) userSockets.delete(userId); });
 });
 
-server.listen(PORT, () => console.log('laff server on :'+PORT));
+server.listen(PORT, () => { console.log('laff server on :'+PORT); setupTelegramWebhook(); });

@@ -37,6 +37,14 @@ Every time someone sends a message in laff, you get a Telegram notification:
 ```
 laff alert: someone is talking to you.
 message: "i feel like nobody sees me..."
+
+↩ reply to this message to respond to them
 ```
 
-Tap the notification, open the app, tap the top 4 times, enter your passcode, respond.
+**You can reply straight from Telegram — no app, no passcode.** Swipe on the alert message (or long-press → Reply) and type your response; it goes straight to that visitor. Telegram sends back a `✓ sent to <id>` confirmation so you know it landed.
+
+If multiple people are messaging at once: always reply-to the specific alert for the person you mean. If you just type a plain message without replying to anything, it goes to whoever messaged most recently.
+
+The web app's admin mode (tap top 4x, enter passcode) still works too — useful for browsing full conversation history or switching between several open threads at once, but for a quick one-line reply, Telegram is now the fast path.
+
+Requires `ALLOWED_ORIGIN` to be set to your real deployed URL — the server uses it to register the Telegram webhook on startup. Check your server logs for `Telegram webhook registered` to confirm it's live.
