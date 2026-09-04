@@ -129,9 +129,9 @@ html,body{height:100%;background:#0a0a0a;color:#e0d8d4;font-family:-apple-system
   </div>
   <div class="messages" id="messages">
     <div class="thread-empty" id="thread-empty"><span>◦</span>no messages</div>
-  </div>
-  <div class="typing-indicator" id="typing-indicator">
-    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    <div class="typing-indicator" id="typing-indicator">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
   </div>
   <div class="reply-wrap">
     <textarea class="reply-input" id="reply-input" placeholder="reply…" rows="1"></textarea>
@@ -363,7 +363,7 @@ html,body{height:100%;background:#0a0a0a;color:#e0d8d4;font-family:-apple-system
       const div = document.createElement('div');
       div.className = 'bubble ' + (m.fromMe ? 'from-me' : 'from-user');
       div.innerHTML = escHtml(m.text) + `<div class="btime">${fmtTime(m.time)}</div>`;
-      messagesEl.insertBefore(div, typingEl);
+      typingEl.before(div);
     });
   }
 
