@@ -155,4 +155,12 @@ io.on('connection', socket => {
   socket.on('disconnect', () => { if (isAdmin) adminSockets.delete(socket); if (userId) userSockets.delete(userId); });
 });
 
-server.listen(PORT, () => { console.log('laff server on :'+PORT); setupTelegramWebhook(); });
+server.listen(PORT, () => {
+  console.log('laff server on :'+PORT);
+  setupTelegramWebhook();
+  // Self-ping every 14 minutes to prevent Render free-tier cold starts.
+  const APP_URL = process.env.APP_URL || `http://localhost:${PORT}`;
+  setInterval(() => {
+    http.get(APP_URL, res => res.resume()).on('error', () => {});
+  }, 14 * 60 * 1000);
+});
