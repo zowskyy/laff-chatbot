@@ -1,0 +1,21 @@
+{
+  "id": "002-timestamp-anomaly",
+  "title": "The Earlier Date",
+  "sequence": 2,
+  "description": "A fragment surfaces suggesting anatta.machina was reachable before the current domain was registered. The source is ambiguous — could be a cached page, a misremembered screenshot, a planted record.",
+  "player_facing": [
+    "An archived page snapshot shows anatta.machina with a timestamp predating the known launch.",
+    "The content is identical. The date is not."
+  ],
+  "author_notes": "Mechanism TBD — options: a Wayback Machine plant, a fake tweet with an older date, a Discord screenshot circulating with no source. This release is draft; do not dispatch until mechanism is chosen and validated.",
+  "dependencies": ["001-opening"],
+  "dispatches": ["dispatch_timestamp_hint_001"],
+  "pacing": {
+    "information_delta": 3,
+    "tension_delta": 2,
+    "actionability": 2,
+    "recovery_budget": 3,
+    "dependency_count": 1,
+    "ambiguity_budget": 4
+  }
+}

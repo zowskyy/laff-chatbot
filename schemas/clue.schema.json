@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/arg/clue.schema.json",
+  "title": "ARGClue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "release_id",
+    "visibility",
+    "text"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "release_id": {
+      "type": "string"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "player",
+        "author"
+      ]
+    },
+    "text": {
+      "type": "string"
+    },
+    "requires": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "points_to": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

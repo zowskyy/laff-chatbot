@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/arg/social-dispatch.schema.json",
+  "title": "SocialDispatchRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "dispatch_id",
+    "channel",
+    "account_id",
+    "body",
+    "mode",
+    "idempotency_key"
+  ],
+  "properties": {
+    "dispatch_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{2,63}$"
+    },
+    "channel": {
+      "type": "string",
+      "enum": [
+        "x",
+        "bluesky",
+        "mastodon",
+        "discord",
+        "instagram",
+        "webhook",
+        "mock"
+      ]
+    },
+    "account_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "body": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 5000
+    },
+    "mode": {
+      "type": "string",
+      "enum": [
+        "DRY_RUN",
+        "LIVE"
+      ]
+    },
+    "idempotency_key": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128
+    },
+    "scheduled_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "media_urls": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uri"
+      },
+      "maxItems": 10
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "approved_by": {
+          "type": "string"
+        },
+        "approved_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

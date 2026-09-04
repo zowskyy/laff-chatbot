@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/arg/release.schema.json",
+  "title": "ARGRelease",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "title",
+    "sequence",
+    "player_facing",
+    "dependencies",
+    "dispatches"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "player_facing": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dispatches": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pacing": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

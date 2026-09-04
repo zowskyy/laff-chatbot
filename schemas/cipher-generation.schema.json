@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/arg/cipher-generation.schema.json",
+  "title": "CipherGenerationRequest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cipher_id",
+    "algorithm",
+    "input",
+    "output_encoding"
+  ],
+  "properties": {
+    "cipher_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9_-]{2,63}$"
+    },
+    "algorithm": {
+      "type": "string",
+      "enum": [
+        "caesar",
+        "vigenere",
+        "atbash",
+        "rot",
+        "base64",
+        "hex",
+        "reverse",
+        "custom_substitution"
+      ]
+    },
+    "input": {
+      "type": "string",
+      "maxLength": 10000
+    },
+    "key": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "shift": {
+      "type": "integer",
+      "minimum": -100000,
+      "maximum": 100000
+    },
+    "output_encoding": {
+      "type": "string",
+      "enum": [
+        "raw",
+        "upper",
+        "lower",
+        "base64",
+        "hex"
+      ]
+    },
+    "seed": {
+      "type": "string",
+      "maxLength": 256
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "number",
+          "boolean"
+        ]
+      }
+    }
+  }
+}
