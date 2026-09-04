@@ -1,0 +1,12 @@
+{
+  "name": "laff-chatbot",
+  "version": "1.0.0",
+  "description": "anonymous chatbot where you are the bot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "socket.io": "^4.7.5"
+  }
+}
