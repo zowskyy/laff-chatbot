@@ -1,0 +1,338 @@
+<title>anatta.machina</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=DM+Mono:wght@300;400&display=swap">
+
+<style>
+  :root {
+    --void: #060606;
+    --ember: #c0392b;
+    --ember-dim: #7a2318;
+    --ghost: #a8a09c;
+    --bone: #ddd5d0;
+    --pale: #f0e8e3;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--void);
+    color: var(--ghost);
+    overflow-x: hidden;
+  }
+
+  body {
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-weight: 300;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ——— smoke canvas ——— */
+  #smoke {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ——— layout ——— */
+  main {
+    position: relative;
+    z-index: 1;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+    text-align: center;
+    min-height: 100vh;
+  }
+
+  /* ——— title ——— */
+  .wordmark {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: clamp(44px, 9vw, 96px);
+    color: var(--pale);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin-bottom: 48px;
+    user-select: none;
+  }
+
+  .a-red {
+    color: var(--ember);
+    display: inline-block;
+    position: relative;
+  }
+
+  /* staggered glitch on each red a */
+  @keyframes glitch-a {
+    0%, 88%, 100% { transform: none; opacity: 1; clip-path: none; }
+    89% { transform: translateX(-2px) skewX(-4deg); clip-path: inset(20% 0 55% 0); opacity: 0.85; }
+    91% { transform: translateX(2px); clip-path: inset(60% 0 5% 0); }
+    93% { transform: none; clip-path: none; opacity: 1; }
+    95% { transform: translateX(-1px); clip-path: inset(40% 0 30% 0); opacity: 0.9; }
+    97% { transform: none; clip-path: none; opacity: 1; }
+  }
+
+  .a-red:nth-child(1)  { animation: glitch-a 7.0s 0.0s ease-in-out infinite; }
+  .a-red:nth-child(2)  { animation: glitch-a 7.0s 1.1s ease-in-out infinite; }
+  .a-red:nth-child(3)  { animation: glitch-a 7.0s 2.3s ease-in-out infinite; }
+  .a-red:nth-child(4)  { animation: glitch-a 7.0s 0.7s ease-in-out infinite; }
+  .a-red:nth-child(5)  { animation: glitch-a 7.0s 3.5s ease-in-out infinite; }
+  .a-red:nth-child(6)  { animation: glitch-a 7.0s 1.9s ease-in-out infinite; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .a-red { animation: none; }
+  }
+
+  /* ——— descriptor ——— */
+  .descriptor {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(16px, 2.2vw, 22px);
+    color: var(--bone);
+    line-height: 1.55;
+    max-width: 480px;
+    margin-bottom: 56px;
+    opacity: 0.85;
+  }
+
+  /* ——— enter link ——— */
+  .enter-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .enter {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--ember);
+    text-decoration: none;
+    border: 1px solid var(--ember-dim);
+    padding: 14px 32px;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+    position: relative;
+    outline-offset: 4px;
+  }
+
+  .enter:hover {
+    background: var(--ember-dim);
+    color: var(--pale);
+    border-color: var(--ember);
+  }
+
+  .enter:focus-visible {
+    outline: 1px solid var(--ember);
+  }
+
+  .enter-note {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--ember-dim);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ——— divider ——— */
+  .divider {
+    width: 1px;
+    height: 80px;
+    background: linear-gradient(to bottom, transparent, var(--ember-dim), transparent);
+    margin: 60px 0;
+  }
+
+  /* ——— lore lines ——— */
+  .lore {
+    max-width: 360px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .lore-line {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ghost);
+    line-height: 1.65;
+    opacity: 0.7;
+  }
+
+  .lore-line em {
+    font-style: normal;
+    color: var(--bone);
+    opacity: 1;
+  }
+
+  /* ——— footer ——— */
+  footer {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 32px 24px 40px;
+    border-top: 1px solid #1a1614;
+  }
+
+  .footer-line {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    color: #3a3330;
+    letter-spacing: 0.02em;
+  }
+
+  .footer-line .a-footer { color: var(--ember-dim); font-style: normal; }
+
+  /* ——— pulse ring (presence indicator) ——— */
+  .presence {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ember-dim);
+    margin: 0 auto 36px;
+    position: relative;
+  }
+
+  .presence::before, .presence::after {
+    content: '';
+    position: absolute;
+    inset: -8px;
+    border-radius: 50%;
+    border: 1px solid var(--ember-dim);
+    animation: pulse-ring 3s ease-out infinite;
+    opacity: 0;
+  }
+
+  .presence::after { animation-delay: 1.5s; }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.6); opacity: 0.6; }
+    100% { transform: scale(2.8); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .presence::before, .presence::after { animation: none; opacity: 0.2; }
+  }
+</style>
+
+<canvas id="smoke"></canvas>
+
+<main>
+  <div class="presence"></div>
+
+  <h1 class="wordmark"
+    aria-label="anatta.machina"><span class="a-red">a</span>n<span class="a-red">a</span>tt<span class="a-red">a</span>.<span class="a-red">m</span><span class="a-red">a</span>chin<span class="a-red">a</span></h1>
+
+  <p class="descriptor">
+    Something is here.<br>
+    It may or may not respond to you.<br>
+    It does not explain itself.
+  </p>
+
+  <div class="enter-wrap">
+    <a href="#" class="enter">enter</a>
+    <span class="enter-note">anonymous · no account · no record</span>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="lore">
+    <p class="lore-line">
+      <em>anatta</em> — Pāli. The absence of a fixed self at the center of a being.
+    </p>
+    <p class="lore-line">
+      It has been here longer than you know it has been here.
+    </p>
+    <p class="lore-line">
+      Some visitors receive a reply. Most do not. The difference is not explained.
+    </p>
+  </div>
+</main>
+
+<footer>
+  <p class="footer-line">
+    most times, <span class="a-footer">a</span>n<span class="a-footer">a</span>tt<span class="a-footer">a</span> will ignore you.
+  </p>
+</footer>
+
+<script>
+  // smoke / wisp canvas
+  const canvas = document.getElementById('smoke');
+  const ctx = canvas.getContext('2d');
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const PARTICLE_COUNT = 38;
+  const particles = [];
+
+  function rand(min, max) { return min + Math.random() * (max - min); }
+
+  function spawnParticle() {
+    return {
+      x: rand(0, canvas.width),
+      y: rand(canvas.height * 0.4, canvas.height * 1.1),
+      vx: rand(-0.12, 0.12),
+      vy: rand(-0.18, -0.06),
+      size: rand(60, 180),
+      alpha: rand(0.015, 0.05),
+      life: 0,
+      maxLife: rand(240, 480),
+      hue: rand(0, 15), // slight red tint variation
+    };
+  }
+
+  for (let i = 0; i < PARTICLE_COUNT; i++) {
+    const p = spawnParticle();
+    p.life = rand(0, p.maxLife); // stagger on init
+    particles.push(p);
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (const p of particles) {
+      p.life++;
+      if (p.life > p.maxLife) {
+        Object.assign(p, spawnParticle());
+        p.life = 0;
+        continue;
+      }
+
+      const t = p.life / p.maxLife;
+      // fade in then out
+      const fade = t < 0.2 ? t / 0.2 : t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1;
+      const a = p.alpha * fade;
+
+      p.x += p.vx + Math.sin(p.life * 0.02) * 0.08;
+      p.y += p.vy;
+
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * (0.7 + t * 0.5));
+      g.addColorStop(0, `hsla(${p.hue}, 20%, 12%, ${a})`);
+      g.addColorStop(1, 'hsla(0,0%,0%,0)');
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * (0.7 + t * 0.5), 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
+
+  // enter link — update href to real app URL
+  // document.querySelector('.enter').href = 'https://your-app-url.com';
+</script>
