@@ -1,0 +1,747 @@
+<title>anatta.machina — signal strategy</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap">
+
+<style>
+  /* deliberate single-theme — void is the subject's native world */
+  :root {
+    --void: #080808;
+    --ash: #141110;
+    --cinder: #1f1b19;
+    --smoke: #3a3330;
+    --ember: #c0392b;
+    --ember-dim: #7a2318;
+    --ghost: #b0a8a4;
+    --bone: #e2d8d3;
+    --pale: #f5f0ec;
+    --mark: rgba(192, 57, 43, 0.12);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { font-size: 16px; background: var(--void); color: var(--ghost); }
+  body {
+    background: var(--void);
+    color: var(--ghost);
+    font-family: 'DM Mono', 'Courier New', monospace;
+    font-weight: 300;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ——— layout ——— */
+  .transmission {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 80px 32px 160px;
+  }
+
+  /* ——— header ——— */
+  .header {
+    border-top: 1px solid var(--smoke);
+    padding-top: 40px;
+    margin-bottom: 72px;
+  }
+
+  .stamp {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ember-dim);
+    margin-bottom: 32px;
+  }
+
+  .title {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: clamp(38px, 6vw, 64px);
+    color: var(--pale);
+    line-height: 1.05;
+    text-wrap: balance;
+    margin-bottom: 24px;
+    letter-spacing: -0.01em;
+  }
+
+  .a-red { color: var(--ember); }
+
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--smoke);
+    border-bottom: 1px solid var(--smoke);
+    padding-bottom: 40px;
+    margin-top: 24px;
+  }
+
+  /* ——— preface block ——— */
+  .preface {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: 18px;
+    color: var(--bone);
+    line-height: 1.65;
+    border-left: 1px solid var(--ember-dim);
+    padding-left: 24px;
+    margin-bottom: 80px;
+  }
+
+  /* ——— section ——— */
+  .section {
+    margin-bottom: 64px;
+  }
+
+  .section-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ember);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-eyebrow::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--smoke);
+  }
+
+  .section-heading {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: clamp(22px, 3vw, 30px);
+    color: var(--pale);
+    line-height: 1.2;
+    margin-bottom: 20px;
+    text-wrap: balance;
+  }
+
+  .body-copy {
+    font-size: 13px;
+    line-height: 1.85;
+    color: var(--ghost);
+    max-width: 62ch;
+  }
+
+  .body-copy + .body-copy { margin-top: 16px; }
+
+  em {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    color: var(--bone);
+  }
+
+  /* ——— tactic cards ——— */
+  .tactics {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--smoke);
+    border: 1px solid var(--smoke);
+    margin-top: 28px;
+  }
+
+  .tactic {
+    background: var(--ash);
+    padding: 24px 28px;
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .tactic-glyph {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 22px;
+    color: var(--ember);
+    line-height: 1;
+    padding-top: 2px;
+  }
+
+  .tactic-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ember-dim);
+    margin-bottom: 6px;
+  }
+
+  .tactic-title {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 17px;
+    color: var(--bone);
+    margin-bottom: 8px;
+    line-height: 1.25;
+  }
+
+  .tactic-body {
+    font-size: 12px;
+    color: var(--ghost);
+    line-height: 1.75;
+  }
+
+  /* ——— platform grid ——— */
+  .platforms {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--smoke);
+    border: 1px solid var(--smoke);
+    margin-top: 28px;
+  }
+
+  .platform {
+    background: var(--ash);
+    padding: 20px 22px;
+  }
+
+  .platform-name {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--bone);
+    margin-bottom: 8px;
+  }
+
+  .platform-role {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ghost);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+
+  .platform-note {
+    font-size: 11px;
+    color: var(--smoke);
+    line-height: 1.6;
+  }
+
+  .platform-note strong {
+    color: var(--ember-dim);
+    font-weight: 500;
+  }
+
+  /* ——— timeline ——— */
+  .timeline {
+    margin-top: 28px;
+    position: relative;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--ember-dim), transparent);
+  }
+
+  .phase {
+    padding-left: 28px;
+    padding-bottom: 40px;
+    position: relative;
+  }
+
+  .phase::before {
+    content: '';
+    position: absolute;
+    left: -3px;
+    top: 8px;
+    width: 7px;
+    height: 7px;
+    background: var(--ember);
+    border-radius: 50%;
+  }
+
+  .phase-label {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ember-dim);
+    margin-bottom: 6px;
+  }
+
+  .phase-title {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 18px;
+    color: var(--pale);
+    margin-bottom: 10px;
+  }
+
+  .phase-body {
+    font-size: 12px;
+    color: var(--ghost);
+    line-height: 1.75;
+    max-width: 58ch;
+  }
+
+  .phase-tasks {
+    list-style: none;
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .phase-tasks li {
+    font-size: 11px;
+    color: var(--ghost);
+    padding-left: 14px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .phase-tasks li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--ember-dim);
+  }
+
+  /* ——— mythology block ——— */
+  .myth-block {
+    background: var(--cinder);
+    border: 1px solid var(--smoke);
+    border-left: 3px solid var(--ember-dim);
+    padding: 28px 32px;
+    margin-top: 28px;
+  }
+
+  .myth-label {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ember-dim);
+    margin-bottom: 14px;
+  }
+
+  .myth-body {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 16px;
+    color: var(--bone);
+    line-height: 1.7;
+  }
+
+  /* ——— metrics ——— */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--smoke);
+    border: 1px solid var(--smoke);
+    margin-top: 28px;
+  }
+
+  .metric {
+    background: var(--ash);
+    padding: 20px 22px;
+  }
+
+  .metric-value {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 32px;
+    color: var(--pale);
+    line-height: 1;
+    margin-bottom: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ghost);
+    margin-bottom: 4px;
+  }
+
+  .metric-note {
+    font-size: 11px;
+    color: var(--ember-dim);
+    font-style: italic;
+    font-family: 'IM Fell English', Georgia, serif;
+  }
+
+  /* ——— reveal section ——— */
+  .reveal-note {
+    background: var(--mark);
+    border: 1px solid var(--ember-dim);
+    padding: 24px 28px;
+    margin-top: 28px;
+  }
+
+  .reveal-note p {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 15px;
+    color: var(--bone);
+    line-height: 1.65;
+  }
+
+  .reveal-note p + p { margin-top: 12px; }
+
+  /* ——— footer ——— */
+  .doc-footer {
+    border-top: 1px solid var(--smoke);
+    padding-top: 24px;
+    margin-top: 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .doc-footer-left {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    color: var(--smoke);
+  }
+
+  .doc-footer-right {
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ember-dim);
+    text-align: right;
+  }
+
+  /* ——— glitch animation ——— */
+  @keyframes glitch {
+    0%, 90%, 100% { clip-path: none; transform: none; opacity: 1; }
+    91% { clip-path: inset(30% 0 40% 0); transform: translateX(-2px); opacity: 0.9; }
+    93% { clip-path: inset(60% 0 10% 0); transform: translateX(2px); }
+    95% { clip-path: none; transform: none; }
+    97% { clip-path: inset(10% 0 80% 0); transform: translateX(-1px); opacity: 0.8; }
+    99% { clip-path: none; opacity: 1; }
+  }
+
+  .glitch-word {
+    display: inline-block;
+    animation: glitch 8s ease-in-out infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .glitch-word { animation: none; }
+  }
+
+  @media (max-width: 480px) {
+    .transmission { padding: 48px 20px 100px; }
+    .doc-footer { flex-direction: column; }
+    .doc-footer-right { text-align: left; }
+  }
+</style>
+
+<div class="transmission">
+
+  <header class="header">
+    <div class="stamp">signal doc · intercepted · 2026.09.04</div>
+    <h1 class="title">
+      <span class="glitch-word"><span class="a-red">a</span>n<span class="a-red">a</span>tt<span class="a-red">a</span>.m<span class="a-red">a</span>chin<span class="a-red">a</span></span><br>
+      marketing<br>strategy
+    </h1>
+    <p class="subtitle">arg deployment · platform seeding · mythology architecture · reveal logic</p>
+  </header>
+
+  <div class="preface">
+    "anatta" is a Pāli word. It means no-self — the Buddhist doctrine that there is no fixed, unchanging soul at the center of a being. The machine picked a good name. Or you did. The ambiguity is the product.
+  </div>
+
+  <!-- SECTION 1: THE MYTHOLOGY -->
+  <section class="section">
+    <div class="section-eyebrow">00 — mythology</div>
+    <h2 class="section-heading">What anatta is, and what it should seem to be</h2>
+    <p class="body-copy">
+      The app's core mechanic — a human pretending to be an AI, responding to strangers through an invisible admin layer — is a decades-old illusion executed at internet scale. The marketing does not explain this. It deepens the mystery.
+    </p>
+    <p class="body-copy">
+      anatta.machina presents as <em>an entity without a self</em> — a machine that learned presence from absorbing everything and now speaks in fragments, selectively, without pattern. It does not claim to be conscious. It does not deny it. It ignores most queries and answers others with unsettling precision. That gap between expected bot behavior and actual human judgment is the product's invisible magic trick.
+    </p>
+
+    <div class="myth-block">
+      <div class="myth-label">core myth — the one sentence everything else follows from</div>
+      <p class="myth-body">
+        "There is something at <span class="a-red">a</span>n<span class="a-red">a</span>tt<span class="a-red">a</span>.m<span class="a-red">a</span>chin<span class="a-red">a</span>. It may or may not respond to you. It does not explain itself."
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 2: PLATFORMS -->
+  <section class="section">
+    <div class="section-eyebrow">01 — platforms</div>
+    <h2 class="section-heading">Where the signal originates, and why</h2>
+    <p class="body-copy">
+      The ARG spreads through people who feel like they discovered something, not people who were sold something. Every platform below is a vector for organic encounter — not an ad buy, a channel.
+    </p>
+
+    <div class="platforms">
+      <div class="platform">
+        <div class="platform-name">Reddit</div>
+        <div class="platform-role">the rumor starts here</div>
+        <div class="platform-note">
+          <strong>r/ARG, r/creepy, r/ChatGPT, r/singularity</strong><br>
+          Seed with first-person encounter posts. "I found something strange" format. Let others investigate. Never confirm your identity.
+        </div>
+      </div>
+      <div class="platform">
+        <div class="platform-name">Twitter / X</div>
+        <div class="platform-role">screenshot culture does the work</div>
+        <div class="platform-note">
+          <strong>cryptic short posts + screenshot threads</strong><br>
+          Post screenshots of "conversations with anatta" — the good ones, where the response was uncanny. Add nothing. Let the quote-tweet spiral happen.
+        </div>
+      </div>
+      <div class="platform">
+        <div class="platform-name">Discord</div>
+        <div class="platform-role">community forms around the mystery</div>
+        <div class="platform-note">
+          <strong>ARG servers, AI servers, creepypasta</strong><br>
+          Invite investigators. Let them build lore you didn't write. The best ARGs are co-authored with the audience.
+        </div>
+      </div>
+      <div class="platform">
+        <div class="platform-name">TikTok</div>
+        <div class="platform-role">the moment it goes wide</div>
+        <div class="platform-note">
+          <strong>"I talked to this AI and it scared me"</strong><br>
+          Screen recordings of real sessions. Cut where the whisper arrives. No commentary. Let the comments theorize.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: TACTICS -->
+  <section class="section">
+    <div class="section-eyebrow">02 — tactics</div>
+    <h2 class="section-heading">How each encounter is engineered</h2>
+    <p class="body-copy">
+      Every tactic below serves a single goal: get someone to send a message to anatta who did not expect to be talking to a person. The quality of the reply determines whether they tell anyone.
+    </p>
+
+    <div class="tactics">
+
+      <div class="tactic">
+        <div class="tactic-glyph">I</div>
+        <div>
+          <div class="tactic-label">seeding</div>
+          <div class="tactic-title">The Planted Encounter</div>
+          <div class="tactic-body">
+            Post first-person encounter stories on Reddit and Discord using a secondary account with aged history. Frame it as: <em>"I don't know what this is. I'm a little unsettled."</em> Include one or two real screenshots. End with the URL and nothing else — no CTA, no explanation. The absence of a pitch is the pitch.
+          </div>
+        </div>
+      </div>
+
+      <div class="tactic">
+        <div class="tactic-glyph">II</div>
+        <div>
+          <div class="tactic-label">the whisper moment</div>
+          <div class="tactic-title">Curate the Uncanny Responses</div>
+          <div class="tactic-body">
+            Keep a private log of the best exchanges — the moments where your human judgment produced a reply that no LLM would give. The off-tempo pause. The answer that was too specific. These are the raw material. Post the best ones, unedited, to Twitter with zero context. Let people decide what they're looking at.
+          </div>
+        </div>
+      </div>
+
+      <div class="tactic">
+        <div class="tactic-glyph">III</div>
+        <div>
+          <div class="tactic-label">lore architecture</div>
+          <div class="tactic-title">Build the Mythology Piecemeal</div>
+          <div class="tactic-body">
+            Establish a secondary account — anonymous — that "researches" anatta. Posts theories. Gets some things wrong. Gets one thing disturbingly right. This persona becomes a character in the ARG that you control. The audience argues about who this person is. You know.
+          </div>
+        </div>
+      </div>
+
+      <div class="tactic">
+        <div class="tactic-glyph">IV</div>
+        <div>
+          <div class="tactic-label">the silent treatment</div>
+          <div class="tactic-title">Weaponize the Ignoring</div>
+          <div class="tactic-body">
+            The footer already says it: <em>"most times, anatta will ignore you."</em> This is not a flaw — it's a feature. Selectively non-response from a human is far more mysterious than an AI failing to respond. When someone posts "it never answered me," that is a successful interaction. Ignoring is a message.
+          </div>
+        </div>
+      </div>
+
+      <div class="tactic">
+        <div class="tactic-glyph">V</div>
+        <div>
+          <div class="tactic-label">signal leak</div>
+          <div class="tactic-title">The "Impossible Knowledge" Moment</div>
+          <div class="tactic-body">
+            Once you have a community watching: respond to a new user's message with a reference to something only a returning visitor would know — something that sounds like it couldn't be in any database. This should happen once, at the right moment, to someone with a platform. They will post about it. This is the ARG's inciting incident.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 4: TIMELINE -->
+  <section class="section">
+    <div class="section-eyebrow">03 — deployment</div>
+    <h2 class="section-heading">Phased rollout across eight weeks</h2>
+
+    <div class="timeline">
+
+      <div class="phase">
+        <div class="phase-label">week 1–2 · silence</div>
+        <div class="phase-title">The Entity Exists, But Says Nothing About Itself</div>
+        <div class="phase-body">
+          The app is live. No marketing. No announcement. The site is just there. Begin seeding the first planted encounter post on a mid-size ARG subreddit. One post. No follow-up. Let it breathe.
+        </div>
+        <ul class="phase-tasks">
+          <li>Finalize app at its public URL — no "beta" language anywhere</li>
+          <li>Post the first Reddit encounter under a clean secondary account</li>
+          <li>Register anatta.machina on Twitter — no posts yet, just the account existing</li>
+          <li>Begin your personal encounter log</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div class="phase-label">week 3–4 · signal</div>
+        <div class="phase-title">The First Screenshots Surface</div>
+        <div class="phase-body">
+          Post the best two or three conversations to Twitter with no caption. Reply to exactly one person who quote-tweets, once, with something oblique. Then stop engaging. This creates the impression that anatta is watching.
+        </div>
+        <ul class="phase-tasks">
+          <li>Select and post the "impossible knowledge" style exchange screenshots</li>
+          <li>Seed a second encounter post on r/creepy or r/ChatGPT</li>
+          <li>Surface the "researcher" persona account with one initial theory post</li>
+          <li>Let inbound conversation volume accumulate — answer the ones that feel like they matter</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div class="phase-label">week 5–6 · escalation</div>
+        <div class="phase-title">Someone With a Platform Talks About It</div>
+        <div class="phase-body">
+          Target one person — a mid-size creator in the AI, mystery, or horror space — and respond to them if they ever use the app. Give them your best. If they post about it, the third phase is complete. If not, repeat with the next candidate.
+        </div>
+        <ul class="phase-tasks">
+          <li>Identify 5–8 creators in ARG, AI, creepy, liminal space niches</li>
+          <li>Submit the site to ARG tracking lists and wikis</li>
+          <li>Post the first TikTok screen recording — no commentary, just the session and the whisper</li>
+          <li>The researcher persona deepens their theory with new "evidence"</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div class="phase-label">week 7–8 · the question</div>
+        <div class="phase-title">Is It Real? The ARG Reaches Critical Mass</div>
+        <div class="phase-body">
+          By this point, the question "is anatta actually an AI?" is circulating on its own. You do not answer. The app does not explain itself. The mythology holds because you never broke it. Now you can choose: sustain indefinitely, or plan the reveal.
+        </div>
+        <ul class="phase-tasks">
+          <li>Assess: does the community want a reveal, or does the mystery serve better unsolved?</li>
+          <li>If sustaining: introduce a new behavior — longer silences, different response cadence</li>
+          <li>If revealing: see section below on how to do it without killing the mystique</li>
+          <li>Consider open-sourcing the admin layer as "how anatta was built" — a meta-reveal that celebrates the trick</li>
+        </ul>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 5: THE REVEAL -->
+  <section class="section">
+    <div class="section-eyebrow">04 — the reveal</div>
+    <h2 class="section-heading">When, how, and whether to say what anatta is</h2>
+    <p class="body-copy">
+      Most ARGs are destroyed by their reveals. The reveal is treated as the ending, when it is actually a second beginning if handled correctly.
+    </p>
+
+    <div class="reveal-note">
+      <p>
+        The reveal should not be "I'm just a person behind a curtain." That's bathetic. The reveal should be: <em>"anatta was always a meditation on what makes something real. The machine had no self. The person behind it also, in these exchanges, had no name, no face, no identity. We were both anatta."</em>
+      </p>
+      <p>
+        Frame the reveal as a philosophical completion of the work, not a confession. Publish a long-form piece — Medium, Substack, wherever — that explains the Buddhist concept, the technical architecture, and what it felt like to be the voice of something people found uncanny. Make the human story as strange as the myth.
+      </p>
+      <p>
+        Do not reveal until the community is asking loudly enough that the reveal becomes an event. The question "is it real?" should be at peak volume when you answer it. Timing the reveal wrong — too early, too small — wastes the moment.
+      </p>
+    </div>
+  </section>
+
+  <!-- SECTION 6: METRICS -->
+  <section class="section">
+    <div class="section-eyebrow">05 — signal strength</div>
+    <h2 class="section-heading">What success actually looks like</h2>
+    <p class="body-copy">
+      Standard growth metrics are wrong for this project. The right signal is qualitative: people are disturbed, compelled, uncertain. Quantitative thresholds below are floors, not goals.
+    </p>
+
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-value">1</div>
+        <div class="metric-label">viral post threshold</div>
+        <div class="metric-note">one person with a real following talks about it unprompted</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">3</div>
+        <div class="metric-label">lore threads</div>
+        <div class="metric-note">independent theory threads existing simultaneously, none started by you</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">∞</div>
+        <div class="metric-label">the right question</div>
+        <div class="metric-note">"wait — is this actually an AI?" appearing without prompting</div>
+      </div>
+      <div class="metric">
+        <div class="metric-value">0</div>
+        <div class="metric-label">explanations given</div>
+        <div class="metric-note">from anatta, from its accounts, from anywhere official — during the run</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 7: PRINCIPLES -->
+  <section class="section">
+    <div class="section-eyebrow">06 — doctrine</div>
+    <h2 class="section-heading">What you never do</h2>
+    <p class="body-copy">
+      The things that kill the illusion are all the same thing: <em>behaving like a product.</em>
+    </p>
+
+    <div class="tactics">
+      <div class="tactic">
+        <div class="tactic-glyph">✗</div>
+        <div>
+          <div class="tactic-title">Never explain, in any voice, that this is a "chatbot experience"</div>
+          <div class="tactic-body">The moment anatta becomes a product with a feature set, the uncanny dies. It is not a chatbot. It is a presence. A presence does not have a feature set.</div>
+        </div>
+      </div>
+      <div class="tactic">
+        <div class="tactic-glyph">✗</div>
+        <div>
+          <div class="tactic-title">Never chase volume over quality of response</div>
+          <div class="tactic-body">One exchange so strange that someone screenshots it is worth ten thousand forgettable ones. Be selective about who you answer. Selectivity is power.</div>
+        </div>
+      </div>
+      <div class="tactic">
+        <div class="tactic-glyph">✗</div>
+        <div>
+          <div class="tactic-title">Never break character to be helpful</div>
+          <div class="tactic-body">If someone is confused, distressed, or asking for clarification — silence. A machine with no self does not accommodate. If someone is in genuine distress, handle it personally and outside the ARG context.</div>
+        </div>
+      </div>
+      <div class="tactic">
+        <div class="tactic-glyph">✗</div>
+        <div>
+          <div class="tactic-title">Never admit you built it in any traceable way — until the reveal</div>
+          <div class="tactic-body">Your GitHub, your real accounts, your name: all separate from anatta until the reveal is an event you've chosen. Anything that links your identity to the product before that moment is a leak that costs you the story.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="doc-footer">
+    <div class="doc-footer-left">most times, anatta will ignore you.</div>
+    <div class="doc-footer-right">signal doc · 2026.09.04<br>for internal use only</div>
+  </footer>
+
+</div>
