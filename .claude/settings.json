@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Glob",
+      "Grep",
+      "Bash(node --version)",
+      "Bash(npm test)",
+      "Bash(node scripts/validate.mjs)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Bash(git push --force*)"
+    ]
+  },
+  "env": {
+    "ARG_MODE": "DRY_RUN"
+  }
+}

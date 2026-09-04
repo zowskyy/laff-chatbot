@@ -1,0 +1,49 @@
+{
+  "player_id": "grey-smoke",
+  "version": 3,
+  "contact_attempts": 4,
+  "received_reply": true,
+  "silence_streak": 0,
+  "flags": {
+    "saw_opening_release": true,
+    "found_timestamp_anomaly": false,
+    "understood_silence": false
+  },
+  "discovered_fragments": [],
+  "solved_puzzles": [],
+  "threads": ["FIRST_CONTACT"],
+  "last_release_id": "001-opening",
+  "events": [
+    {
+      "event_id": "evt_001",
+      "type": "release_seen",
+      "timestamp": "2026-09-04T00:00:00Z",
+      "payload": { "release_id": "001-opening" }
+    },
+    {
+      "event_id": "evt_002",
+      "type": "message_sent",
+      "timestamp": "2026-09-04T00:03:00Z",
+      "payload": { "silence": true }
+    },
+    {
+      "event_id": "evt_003",
+      "type": "message_sent",
+      "timestamp": "2026-09-04T00:05:00Z",
+      "payload": { "silence": true }
+    },
+    {
+      "event_id": "evt_004",
+      "type": "reply_received",
+      "timestamp": "2026-09-04T00:12:00Z",
+      "payload": {}
+    },
+    {
+      "event_id": "evt_005",
+      "type": "message_sent",
+      "timestamp": "2026-09-04T00:14:00Z",
+      "payload": { "silence": false }
+    }
+  ],
+  "updated_at": "2026-09-04T00:14:00Z"
+}

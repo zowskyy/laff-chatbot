@@ -1,0 +1,49 @@
+{
+  "id": "puzzle_silence_pattern",
+  "title": "What It Responds To",
+  "objective": "Determine whether there is a pattern to which messages anatta replies to.",
+  "dependencies": ["001-opening"],
+  "clues": [
+    {
+      "id": "sp_c1",
+      "surface": "anatta has replied to some visitors and not others.",
+      "purpose": "Establishes that selection exists."
+    },
+    {
+      "id": "sp_c2",
+      "surface": "The replies, when they come, do not answer the question asked.",
+      "purpose": "Undermines the obvious hypothesis (that good questions get replies)."
+    },
+    {
+      "id": "sp_c3",
+      "surface": "Several people report receiving a reply after saying nothing at all — just sitting in the chat window.",
+      "purpose": "Introduces the silence-as-signal mechanic."
+    }
+  ],
+  "solution": {
+    "answer": "There is no pattern. The selection is arbitrary.",
+    "method": "Players who test enough hypotheses and track community reports converge on: no correlation with question content, length, time of day, or persistence. The entity responds when it wants to."
+  },
+  "hints": [
+    "What changes when you stop trying to be noticed?",
+    "Does asking more help?",
+    "What would you do if you genuinely believed it couldn't hear you?"
+  ],
+  "reward": {
+    "type": "flag",
+    "value": "understood_silence"
+  },
+  "recovery": "This puzzle has no hard solve gate. Players who reach the flag state have internalized the fiction correctly.",
+  "tests": [
+    {
+      "name": "correct_conclusion",
+      "input": "no pattern",
+      "expected": "flag: understood_silence"
+    },
+    {
+      "name": "wrong_hypothesis_time_of_day",
+      "input": "replies at night",
+      "expected": "no flag; hint H2 triggered"
+    }
+  ]
+}

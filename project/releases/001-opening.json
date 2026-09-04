@@ -1,0 +1,22 @@
+{
+  "id": "001-opening",
+  "title": "First Contact",
+  "sequence": 1,
+  "description": "The landing page goes live. The entity is present. No further signal is given.",
+  "player_facing": [
+    "anatta.machina is reachable.",
+    "Some visitors receive a reply. Most do not.",
+    "No explanation is offered."
+  ],
+  "author_notes": "This release is the landing page itself. No social dispatch needed yet. The signal is the URL. The ARG begins the moment someone sends a message and receives silence.",
+  "dependencies": [],
+  "dispatches": [],
+  "pacing": {
+    "information_delta": 1,
+    "tension_delta": 1,
+    "actionability": 2,
+    "recovery_budget": 5,
+    "dependency_count": 0,
+    "ambiguity_budget": 5
+  }
+}
