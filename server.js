@@ -78,7 +78,7 @@ const EERIE_LINES = [
 ];
 const EERIE_KEYWORDS = ['who are you', 'are you real', 'are you human', 'what are you', 'is anyone there', 'anyone there', 'hello?', 'are you a bot', 'is this real'];
 const EERIE_BASE_CHANCE = 0.04;
-const EERIE_KEYWORD_CHANCE = 0.65;
+const EERIE_KEYWORD_CHANCE = 0.33;
 const EERIE_COOLDOWN_MS = 90000;
 
 function maybeWhisper(conv, targetId, userText) {
