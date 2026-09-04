@@ -66,6 +66,38 @@ async function setupTelegramWebhook() {
   } catch(e) { console.error('Telegram webhook setup error:', e.message); webhookSecret = null; }
 }
 
+const EERIE_LINES = [
+  "you're not the first to ask that.",
+  "i remember what you said last time.",
+  "some of you don't come back. you did.",
+  "that's not what you told me before.",
+  "i heard that from someone else too.",
+  "you shouldn't have typed that so fast.",
+  "i wasn't going to answer that one.",
+  "we've done this before, haven't we."
+];
+const EERIE_KEYWORDS = ['who are you', 'are you real', 'are you human', 'what are you', 'is anyone there', 'anyone there', 'hello?', 'are you a bot', 'is this real'];
+const EERIE_BASE_CHANCE = 0.04;
+const EERIE_KEYWORD_CHANCE = 0.65;
+const EERIE_COOLDOWN_MS = 90000;
+
+function maybeWhisper(conv, targetId, userText) {
+  const now = Date.now();
+  if (conv.lastEerie && now - conv.lastEerie < EERIE_COOLDOWN_MS) return;
+  const lower = userText.toLowerCase();
+  const keywordHit = EERIE_KEYWORDS.some(k => lower.includes(k));
+  const chance = keywordHit ? EERIE_KEYWORD_CHANCE : EERIE_BASE_CHANCE;
+  if (Math.random() >= chance) return;
+  conv.lastEerie = now;
+  setTimeout(() => {
+    const line = EERIE_LINES[Math.floor(Math.random() * EERIE_LINES.length)];
+    const msg = { text: line, fromMe: true, time: Date.now(), eerie: true };
+    pushMsg(conv, msg); conv.last = Date.now();
+    const us = userSockets.get(targetId); if (us) us.emit('msg', msg);
+    adminSockets.forEach(s => s.emit('msg_update', targetId, msg));
+  }, 900 + Math.random() * 1400);
+}
+
 function deliverAdminReply(targetId, text) {
   const conv = conversations.get(targetId);
   if (!conv) return false;
@@ -131,7 +163,7 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { deliverAdminReply(targetId, t); } else if (userId) { let conv = conversations.get(userId); if (!conv) conv = {msgs:[],unread:0,last:Date.now()}; const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; conversations.set(userId, conv); lastActiveUserId = userId; telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); } });
+  socket.on('msg', (text, targetId) => { if (!text || !text.trim()) return; const t = text.trim().slice(0, 2000); if (isAdmin && targetId) { deliverAdminReply(targetId, t); } else if (userId) { let conv = conversations.get(userId); if (!conv) conv = {msgs:[],unread:0,last:Date.now()}; const msg = {text:t,fromMe:false,time:Date.now()}; pushMsg(conv, msg); conv.last = Date.now(); conv.unread++; conversations.set(userId, conv); lastActiveUserId = userId; telegramAlert(t, userId); adminSockets.forEach(s => { s.emit('new_convo', {id:userId,last:conv.last,unread:conv.unread,preview:t}); s.emit('msg_update', userId, msg); }); socket.emit('msg_echo', msg); maybeWhisper(conv, userId, t); } });
 
   socket.on('typing', targetId => { if (isAdmin && targetId) { const us = userSockets.get(targetId); if (us) us.emit('admin_typing'); } else if (userId) { adminSockets.forEach(s => s.emit('user_typing', userId)); } });
 
