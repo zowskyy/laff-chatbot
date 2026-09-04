@@ -53,5 +53,7 @@ Default: `DRY_RUN`. No live dispatch without `ARG_MODE=LIVE` and explicit operat
 - `marketing.html` — internal ARG strategy document styled as an in-universe intercepted file.
 - `project/` — ARG bible, player model, safety policy, puzzles, releases, state.
 - `schemas/` — JSON schemas for all ARG artifacts.
-- `harness/` — TypeScript state store, cipher, dispatch engine, tests.
+- `harness/` — TypeScript state store, cipher, dispatch engine, hype pipeline, tests. Run with `npm test` inside `harness/`.
 - `scripts/validate.mjs` — schema validation runner.
+- `project/dispatch-log/` — audit log of all hype payload drafts. Status: draft → approved → dispatched.
+- `project/MARKETING_STRATEGY.md` — industry analysis, platform strategy, pipeline architecture.
