@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HypePayload",
+  "type": "object",
+  "required": ["id", "release_id", "platform", "payload", "status", "created_at"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Idempotency key — hex string, globally unique per payload."
+    },
+    "release_id": {
+      "type": "string",
+      "description": "The ARG release this payload belongs to."
+    },
+    "platform": {
+      "type": "string",
+      "enum": ["twitter", "reddit", "discord"],
+      "description": "Target platform."
+    },
+    "payload": {
+      "type": "string",
+      "maxLength": 2000,
+      "description": "Exact text to post. For Twitter, must be ≤ 280 chars."
+    },
+    "subreddit": {
+      "type": "string",
+      "description": "Target subreddit (reddit only)."
+    },
+    "post_title": {
+      "type": "string",
+      "description": "Reddit post title (reddit only)."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "approved", "dispatched", "cancelled"]
+    },
+    "earliest_post_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Earliest allowed post time, enforcing inter-drop interval."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "approved_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "dispatched_at": {
+      "type": ["string", "null"],
+      "format": "date-time"
+    },
+    "operator_note": {
+      "type": "string",
+      "default": ""
+    }
+  }
+}
